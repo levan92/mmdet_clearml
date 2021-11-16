@@ -66,6 +66,7 @@ class S3_handler:
         local_weight_dir=None,
         local_data_dir=None,
     ):
+        assert endpoint_url,'Endpoint URL is empty'
         self.s3_resource = boto3.resource(
             "s3",
             endpoint_url=endpoint_url,
@@ -89,7 +90,6 @@ class S3_handler:
         if files:
             assert s3_bucket
             buck = self.s3_resource.Bucket(s3_bucket)
-            assert s3_parent_path
             s3_parent_path = Path(s3_parent_path)
             assert local_parent
             local_parent = Path(local_parent)
@@ -112,7 +112,6 @@ class S3_handler:
         local_dled_dirs = []
         if dirs:
             assert s3_bucket
-            assert s3_parent_path
             s3_parent_path = Path(s3_parent_path)
             assert local_parent
             local_parent = Path(local_parent)

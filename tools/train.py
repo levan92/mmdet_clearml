@@ -1,4 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+try: 
+    import clearml
+except ImportError: 
+    print('Clearml not installed')
 import argparse
 import copy
 import os
@@ -22,6 +26,11 @@ from mmdet.utils import collect_env, get_root_logger
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
     parser.add_argument("config", help="train config file path")
+    parser.add_argument(
+        "--clearml",
+        action="store_true",
+        help="whether not to include clearml logging",
+    )
     parser.add_argument("--work-dir", help="the dir to save logs and models")
     parser.add_argument("--resume-from", help="the checkpoint file to resume from")
     parser.add_argument(
@@ -74,6 +83,10 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    if args.clearml:
+        from clearml import Task
+        cl_task = Task.current_task()
 
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:

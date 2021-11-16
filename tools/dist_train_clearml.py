@@ -33,23 +33,23 @@ def add_clearml_args(parser):
     clearml_parser = parser.add_argument_group("ClearML Args")
 
     clearml_parser.add_argument(
-        "--skip-clearml",
+        "--skip-clml",
         help="flag to entirely skip any clearml action.",
         action="store_true",
     )
     clearml_parser.add_argument(
-        "--clearml-run-locally",
+        "--clml-run-locally",
         help="flag to run job locally but keep clearml expt tracking.",
         action="store_true",
     )
     clearml_parser.add_argument(
-        "--clearml-proj", default="det2", help="ClearML Project Name"
+        "--clml-proj", default="mmdet", help="ClearML Project Name"
     )
     clearml_parser.add_argument(
-        "--clearml-task-name", default="Task", help="ClearML Task Name"
+        "--clml-task-name", default="Task", help="ClearML Task Name"
     )
     clearml_parser.add_argument(
-        "--clearml-task-type",
+        "--clml-task-type",
         default="data_processing",
         help="ClearML Task Type, e.g. training, testing, inference, etc",
         choices=[
@@ -67,7 +67,7 @@ def add_clearml_args(parser):
         ],
     )
     clearml_parser.add_argument(
-        "--clearml-output-uri",
+        "--clml-output-uri",
         help="ClearML output uri",
     )
     clearml_parser.add_argument(
@@ -89,35 +89,36 @@ def add_s3_args(parser):
         "--download-models", help="List of models to download", nargs="+"
     )
     s3_parser.add_argument("--s3-models-bucket", help="S3 Bucket for models")
-    s3_parser.add_argument("--s3-models-path", help="S3 Models Path")
+    s3_parser.add_argument("--s3-models-path", help="S3 Models Path", default='')
 
     ## DATA
     s3_parser.add_argument(
         "--download-data", help="List of dataset to download", nargs="+"
     )
-    s3_parser.add_argument(
-        "--local-data-dir",
-        help="Destination dataset files downloaded to",
-        default="datasets",
-    )
     s3_parser.add_argument("--s3-data-bucket", help="S3 Bucket for data")
-    s3_parser.add_argument("--s3-data-path", help="S3 Data Path")
+    s3_parser.add_argument("--s3-data-path", help="S3 Data Path", default='')
+    parser.add_argument(
+        "--s3-direct-read",
+        help="direct reading of images from S3 bucket without initial bulk download.",
+        action="store_true",
+    )
+
 
 
 def init_clearml(args, environs={}):
-    if not args.skip_clearml:
+    if not args.skip_clml:
         cl_task = Task.init(
-            project_name=args.clearml_proj,
-            task_name=args.clearml_task_name,
-            task_type=args.clearml_task_type,
-            output_uri=args.clearml_output_uri,
+            project_name=args.clml_proj,
+            task_name=args.clml_task_name,
+            task_type=args.clml_task_type,
+            output_uri=args.clml_output_uri,
         )
         if args.docker_img:
             env_strs = " ".join([f"--env {k}={v}" for k, v in environs.items()])
             cl_task.set_base_docker(
                 f"{args.docker_img} --env GIT_SSL_NO_VERIFY=true {env_strs}"
             )
-        if not args.clearml_run_locally:
+        if not args.clml_run_locally:
             cl_task.execute_remotely(queue_name=args.queue, exit_process=True)
 
 
@@ -125,7 +126,7 @@ def s3_download(
     args,
     environs={},
     local_weight_dir="weights",
-    local_data_dir="dataset",
+    local_data_dir="datasets",
 ):
     if not args.skip_s3:
         from utils.s3_helper import S3_handler
