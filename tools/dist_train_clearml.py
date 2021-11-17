@@ -3,7 +3,6 @@ from clearml import Task
 from pathlib import Path
 import os
 
-from torch.distributed.launch import launch
 from torch.distributed.run import get_args_parser
 
 S3_ENVS = [
@@ -189,7 +188,10 @@ def main(args=None):
     environs = {var: os.environ.get(var) for var in S3_ENVS}
     init_clearml(args, environs=environs)
     s3_download(args, environs=environs)
-    launch(args)
+
+    from torch.distributed.run import run
+
+    run(args)
 
 
 if __name__ == "__main__":
