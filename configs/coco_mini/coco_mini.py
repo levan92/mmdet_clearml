@@ -3,7 +3,7 @@ _base_ = '../faster_rcnn/faster_rcnn_r50_caffe_fpn_mstrain_1x_coco.py'
 model = dict(
     backbone=dict (
         init_cfg=dict(
-            type='Pretrained', 
+            type='Pretrained',
             checkpoint='weights/resnet50_msra-5891d200.pth')
     )
 )
