@@ -7,8 +7,8 @@ from torch.distributed.run import get_args_parser
 
 S3_ENVS = [
     "AWS_ENDPOINT_URL",
-    "AWS_ACCESS_KEY",
-    "AWS_SECRET_ACCESS",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
     "CERT_PATH",
     "CERT_DL_URL",
 ]
@@ -146,8 +146,8 @@ def s3_download(
 
         s3_handler = S3_handler(
             environs["AWS_ENDPOINT_URL"],
-            environs["AWS_ACCESS_KEY"],
-            environs["AWS_SECRET_ACCESS"],
+            environs["AWS_ACCESS_KEY_ID"],
+            environs["AWS_SECRET_ACCESS_KEY"],
             environs["CERT_PATH"],
         )
 
