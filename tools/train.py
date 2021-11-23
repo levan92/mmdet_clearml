@@ -84,10 +84,6 @@ def parse_args():
 def main():
     args = parse_args()
 
-    if args.clearml:
-        from clearml import Task
-        cl_task = Task.current_task()
-
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
@@ -123,8 +119,13 @@ def main():
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
         # re-set gpu_ids with distributed training mode
-        _, world_size = get_dist_info()
+        local_rank, world_size = get_dist_info()
         cfg.gpu_ids = range(world_size)
+
+    if args.clearml:
+        if (not distributed) or (local_rank==0):
+            from clearml import Task
+            cl_task = Task.current_task()
 
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
@@ -186,7 +187,6 @@ def main():
         timestamp=timestamp,
         meta=meta,
     )
-
 
 if __name__ == "__main__":
     main()
