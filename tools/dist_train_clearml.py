@@ -102,7 +102,19 @@ def add_s3_args(parser):
         action="store_true",
     )
 
-
+    ## Explicit Upload (not ClearML Auto-magic upload)
+    s3_parser.add_argument(
+        "--s3-upload-folder",
+        help="Training output folder for upload"
+    )
+    s3_parser.add_argument(
+        "--s3-upload-bucket",
+        help="Bucket for upload of training output folder"
+    )
+    s3_parser.add_argument(
+        "--s3-upload-path",
+        help="Path within given bucket for upload of training output folder"
+    )
 
 def init_clearml(args, environs={}):
     if not args.skip_clml:
@@ -119,6 +131,7 @@ def init_clearml(args, environs={}):
             )
         if not args.clml_run_locally:
             cl_task.execute_remotely(queue_name=args.queue, exit_process=True)
+        return cl_task
 
 
 def s3_download(
@@ -127,57 +140,72 @@ def s3_download(
     local_weight_dir="weights",
     local_data_dir="datasets",
 ):
-    if not args.skip_s3:
-        from utils.s3_helper import S3_handler
+    from utils.s3_helper import S3_handler
 
-        environs["CERT_PATH"] = environs["CERT_PATH"] if environs["CERT_PATH"] else None
-        if (
-            environs["CERT_DL_URL"]
-            and environs["CERT_PATH"]
-            and not Path(environs["CERT_PATH"]).is_file()
-        ):
-            import utils.wget as wget
-            import ssl
+    environs["CERT_PATH"] = environs["CERT_PATH"] if environs["CERT_PATH"] else None
+    if (
+        environs["CERT_DL_URL"]
+        and environs["CERT_PATH"]
+        and not Path(environs["CERT_PATH"]).is_file()
+    ):
+        import utils.wget as wget
+        import ssl
 
-            ssl._create_default_https_context = ssl._create_unverified_context
-            print(f'Downloading from {environs["CERT_DL_URL"]}')
-            wget.download(environs["CERT_DL_URL"])
-            environs["CERT_PATH"] = Path(environs["CERT_DL_URL"]).name
+        ssl._create_default_https_context = ssl._create_unverified_context
+        print(f'Downloading from {environs["CERT_DL_URL"]}')
+        wget.download(environs["CERT_DL_URL"])
+        environs["CERT_PATH"] = Path(environs["CERT_DL_URL"]).name
 
-        s3_handler = S3_handler(
-            environs["AWS_ENDPOINT_URL"],
-            environs["AWS_ACCESS_KEY_ID"],
-            environs["AWS_SECRET_ACCESS_KEY"],
-            environs["CERT_PATH"],
+    s3_handler = S3_handler(
+        environs["AWS_ENDPOINT_URL"],
+        environs["AWS_ACCESS_KEY_ID"],
+        environs["AWS_SECRET_ACCESS_KEY"],
+        environs["CERT_PATH"],
+    )
+
+    if args.download_models:
+        local_weights_paths = s3_handler.dl_files(
+            args.download_models,
+            args.s3_models_bucket,
+            args.s3_models_path,
+            local_weight_dir,
+            unzip=True,
         )
 
-        if args.download_models:
-            local_weights_paths = s3_handler.dl_files(
-                args.download_models,
-                args.s3_models_bucket,
-                args.s3_models_path,
-                local_weight_dir,
+    if args.download_data:
+        if args.s3_direct_read:
+            local_data_dirs = s3_handler.dl_files(
+                args.download_data,
+                args.s3_data_bucket,
+                args.s3_data_path,
+                local_data_dir,
                 unzip=True,
             )
+        else:
+            local_data_dirs = s3_handler.dl_dirs(
+                args.download_data,
+                args.s3_data_bucket,
+                args.s3_data_path,
+                local_data_dir,
+                unzip=True,
+            )
+    return s3_handler
 
-        if args.download_data:
-            if args.s3_direct_read:
-                local_data_dirs = s3_handler.dl_files(
-                    args.download_data,
-                    args.s3_data_bucket,
-                    args.s3_data_path,
-                    local_data_dir,
-                    unzip=True,
-                )
-            else:
-                local_data_dirs = s3_handler.dl_dirs(
-                    args.download_data,
-                    args.s3_data_bucket,
-                    args.s3_data_path,
-                    local_data_dir,
-                    unzip=True,
-                )
-
+def s3_upload(
+    s3_handler,
+    args,
+    out_name,
+    environs={},
+):
+    assert s3_handler,'S3 Handler not given during uploading'
+    upload_folder = args.s3_upload_folder or 'work_dirs/output'
+    upload_folder = Path(upload_folder)
+    s3_handler.ul_dir(
+        upload_folder,
+        args.s3_upload_bucket,
+        args.s3_upload_path,
+        out_name
+    )
 
 def main(args=None):
     parser = get_default_parser()
@@ -186,12 +214,16 @@ def main(args=None):
     args = parser.parse_args(args)
 
     environs = {var: os.environ.get(var) for var in S3_ENVS}
-    init_clearml(args, environs=environs)
-    s3_download(args, environs=environs)
+    cl_task = init_clearml(args, environs=environs)
+    if not args.skip_s3:
+        s3_handler = s3_download(args, environs=environs)
 
     from torchrun import run
 
     run(args)
+
+    if not args.skip_s3 and args.s3_upload_bucket is not None:
+        s3_upload(s3_handler, args, f"{cl_task.name}.{cl_task.id}", environs=environs)
 
 
 if __name__ == "__main__":
