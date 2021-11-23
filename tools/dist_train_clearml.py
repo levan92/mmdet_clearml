@@ -189,7 +189,7 @@ def main(args=None):
     init_clearml(args, environs=environs)
     s3_download(args, environs=environs)
 
-    from torch.distributed.run import run
+    from torchrun import run
 
     run(args)
 
