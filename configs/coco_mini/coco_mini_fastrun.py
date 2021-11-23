@@ -24,7 +24,7 @@ data = dict(
         ))
 
 evaluation = dict(interval=500, metric='bbox', save_best='bbox_mAP_50')
-runner = dict(_delete_=True, type='IterBasedRunner', max_iters=20000)
+runner = dict(_delete_=True, type='IterBasedRunner', max_iters=1001)
 checkpoint_config = dict(_delete_=True)
 work_dir = './work_dirs/output'
 
