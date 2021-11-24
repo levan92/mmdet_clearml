@@ -1,11 +1,5 @@
 _base_ = '../faster_rcnn/faster_rcnn_r50_caffe_fpn_mstrain_1x_coco.py'
-model = dict(
-    roi_head=dict(bbox_head=dict(num_classes=3)),
-    init_cfg=dict(
-        type='Pretrained',
-        checkpoint='weights/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth'
-    )
-)
+
 dataset_type = 'CocoDataset'
 data_root = 'datasets/coco2017/'
 classes = ('person', 'boat')
@@ -25,6 +19,15 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         classes=classes,
         ))
+        
+model = dict(
+    roi_head=dict(bbox_head=dict(num_classes=len(classes))),
+    init_cfg=dict(
+        type='Pretrained',
+        checkpoint='weights/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth'
+    )
+)
+
 
 evaluation = dict(interval=1, metric='bbox', save_best='bbox_mAP_50')
 runner = dict(_delete_=True, type='EpochBasedRunner', max_epochs=12)
