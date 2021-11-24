@@ -122,15 +122,16 @@ def main():
         local_rank, world_size = get_dist_info()
         cfg.gpu_ids = range(world_size)
 
-    if args.clearml:
-        if (not distributed) or (local_rank==0):
-            from clearml import Task
-            cl_task = Task.current_task()
-
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
     # dump config
     cfg.dump(osp.join(cfg.work_dir, osp.basename(args.config)))
+
+    if args.clearml and (not distributed or local_rank==0):
+        from clearml import Task
+        cl_task = Task.current_task()
+        cl_task.connect_configuration(name="config", configuration=dict(cfg))
+
     # init the logger before other steps
     timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
     log_file = osp.join(cfg.work_dir, f"{timestamp}.log")
