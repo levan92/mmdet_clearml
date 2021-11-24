@@ -3,7 +3,7 @@ model = dict(
     roi_head=dict(bbox_head=dict(num_classes=3)),
     init_cfg=dict(
         type='Pretrained',
-        checkpoint='weights/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth '
+        checkpoint='weights/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth'
     )
 )
 dataset_type = 'CocoDataset'
