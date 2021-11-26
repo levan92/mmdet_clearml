@@ -25,6 +25,11 @@ def parse_args():
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument(
+        "--clearml",
+        action="store_true",
+        help="whether not to include clearml logging",
+    )
+    parser.add_argument(
         '--work-dir',
         help='the directory to save the file containing evaluation metrics')
     parser.add_argument('--out', help='output result file in pickle format')
@@ -34,11 +39,9 @@ def parse_args():
         help='Whether to fuse conv and bn, this will slightly increase'
         'the inference speed')
     parser.add_argument(
-        '--format-only',
+        '--write-result',
         action='store_true',
-        help='Format the output results without perform evaluation. It is'
-        'useful when you want to format the result to a specific format and '
-        'submit it to the test server')
+        help='write inference results into file')
     parser.add_argument(
         '--eval',
         type=str,
@@ -107,14 +110,11 @@ def parse_args():
 def main():
     args = parse_args()
 
-    assert args.out or args.eval or args.format_only or args.show \
+    assert args.out or args.eval or args.write_result or args.show \
         or args.show_dir, \
         ('Please specify at least one operation (save/eval/format/show the '
          'results / save the results) with the argument "--out", "--eval"'
          ', "--format-only", "--show" or "--show-dir"')
-
-    if args.eval and args.format_only:
-        raise ValueError('--eval and --format_only cannot be both specified')
 
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
@@ -167,11 +167,19 @@ def main():
         init_dist(args.launcher, **cfg.dist_params)
 
     rank, _ = get_dist_info()
-    # allows not to create
-    if args.work_dir is not None and rank == 0:
-        mmcv.mkdir_or_exist(osp.abspath(args.work_dir))
-        timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-        json_file = osp.join(args.work_dir, f'eval_{timestamp}.json')
+    write_res_prefix = None
+    if rank == 0:
+        work_dir = args.work_dir if args.work_dir is not None else cfg.work_dir
+        if work_dir is not None:
+            mmcv.mkdir_or_exist(osp.abspath(work_dir))
+            timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+            json_file = osp.join(work_dir, f'eval_{timestamp}.json')
+            write_res_prefix = osp.join(work_dir, f'res_{timestamp}')
+
+    if args.clearml and (not distributed or rank==0):
+        from clearml import Task
+        cl_task = Task.current_task()
+        cl_task.connect_configuration(name="config", configuration=dict(cfg))
 
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
@@ -216,8 +224,10 @@ def main():
             print(f'\nwriting results to {args.out}')
             mmcv.dump(outputs, args.out)
         kwargs = {} if args.eval_options is None else args.eval_options
-        if args.format_only:
-            dataset.format_results(outputs, **kwargs)
+        
+        if args.write_result:
+            dataset.format_results(outputs, jsonfile_prefix=write_res_prefix, **kwargs)
+        
         if args.eval:
             eval_kwargs = cfg.get('evaluation', {}).copy()
             # hard-code way to remove EvalHook args
