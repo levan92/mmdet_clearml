@@ -35,4 +35,4 @@ RUN pip install -r requirements/build.txt
 RUN pip install --no-cache-dir -e .
 
 RUN pip install --no-cache-dir future tensorboard
-RUN pip install --no-cache-dir clearml boto3 wget
+RUN pip install --no-cache-dir clearml boto3 wget Shapely
