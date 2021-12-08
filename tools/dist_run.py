@@ -98,7 +98,7 @@ def add_s3_args(parser):
     s3_parser.add_argument("--s3-data-path", help="S3 Data Path", default='')
     parser.add_argument(
         "--s3-direct-read",
-        help="direct reading of images from S3 bucket without initial bulk download.",
+        help="Only download first level files from given directory for direct reading of images from S3 bucket without initial bulk download.",
         action="store_true",
     )
 
@@ -174,6 +174,7 @@ def s3_download(
 
     if args.download_data:
         if args.s3_direct_read:
+            print('Only downloading jsons')
             local_data_dirs = s3_handler.dl_files(
                 args.download_data,
                 args.s3_data_bucket,
@@ -182,6 +183,7 @@ def s3_download(
                 unzip=True,
             )
         else:
+            print('Downloading entire dataset')
             local_data_dirs = s3_handler.dl_dirs(
                 args.download_data,
                 args.s3_data_bucket,
