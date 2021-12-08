@@ -21,6 +21,7 @@ data = dict(
     test=dict(
         ann_file=data_root + 'val.json',
         img_prefix=data_root + 'images/',
+        samples_per_gpu=2
         ))
 
 evaluation = dict(interval=500, metric='bbox', save_best='bbox_mAP_50')
