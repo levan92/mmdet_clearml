@@ -278,7 +278,7 @@ def main():
                     )
 
             if args.sub_eval:
-                import mmdet_custom.datasets.coco_imba
+                import mmdet_custom.datasets.coco
 
                 # Subset evaluation
                 jsons = []
