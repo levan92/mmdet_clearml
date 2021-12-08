@@ -20,7 +20,7 @@ python3 test.py ../configs/coco_mini/coco_mini.py weights/faster_rcnn_r50_caffe_
 #### with clearml (still locally)
 
 ```
-python3 dist_train_clearml.py --nproc_per_node=1 --master_port=29500 --clml-run-locally --clml-proj mmdet --clml-task-name coco_mini-test --skip-s3 \
+python3 dist_run.py --nproc_per_node=1 --master_port=29500 --clml-run-locally --clml-proj mmdet --clml-task-name coco_mini-test --skip-s3 \
     test.py ../configs/coco_mini/coco_mini.py weights/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth --clearml --eval bbox --show-dir eval_viz --eval-options classwise=True
 ```
 
