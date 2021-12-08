@@ -3,9 +3,15 @@
 
 ## Prerequisites
 
-- ClearML API keys set up: 
+- ClearML API keys [set up](https://clear.ml/docs/latest/docs/getting_started/ds/ds_first_steps)
 
-## main usage
+## Working
+
+- [x] Training
+- [x] Evaluation (imbalanced as well)
+- [x] Direct S3 reading
+
+## Main usage
 
 `cd tools && ./dist_train_clearml-example.sh <config file> <num gpus>`
 
