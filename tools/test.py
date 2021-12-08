@@ -226,8 +226,14 @@ def main():
         kwargs = {} if args.eval_options is None else args.eval_options
         
         if args.write_result:
-            dataset.format_results(outputs, jsonfile_prefix=write_res_prefix, **kwargs)
-        
+            outfiles, _ = dataset.format_results(outputs, jsonfile_prefix=write_res_prefix, **kwargs)
+            if args.clearml:
+                for key, path in outfiles.items():
+                    cl_task.upload_artifact(
+                        name=f"res-{key}",
+                        artifact_object=path,
+                    )
+
         if args.eval:
             eval_kwargs = cfg.get('evaluation', {}).copy()
             # hard-code way to remove EvalHook args
