@@ -10,6 +10,7 @@
 - [x] Training
 - [x] Evaluation (imbalanced as well)
 - [x] Direct S3 reading
+- [ ] Hyperparam search
 
 ## Main usage
 
