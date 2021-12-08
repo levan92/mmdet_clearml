@@ -246,10 +246,10 @@ def main():
             metric = dataset.evaluate(outputs, **eval_kwargs)
             print(metric)
             metric_dict = dict(config=args.config, metric=metric)
-            if args.work_dir is not None and rank == 0:
+            if args.work_dir is not None:
                 mmcv.dump(metric_dict, json_file)
 
-            if args.clearml and (not distributed or rank==0):
+            if args.clearml:
                 cl_task.upload_artifact(
                     name="eval",
                     artifact_object=metric,
