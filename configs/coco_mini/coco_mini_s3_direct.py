@@ -66,6 +66,7 @@ data = dict(
         ann_file=local_data_root + 'val.json',
         img_prefix=s3_data_root + 'images/',
         pipeline=test_pipeline,
+        samples_per_gpu=2,
         ),
     test=dict(
         ann_file=local_data_root + 'val.json',

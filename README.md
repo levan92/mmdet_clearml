@@ -41,6 +41,8 @@ python dist_run.py --nproc_per_node=$GPUS --master_port=$PORT \
     $(dirname "$0")/train.py ../configs/coco_mini/coco_mini_s3_direct.py --launcher pytorch --clearml ${@:3} 
 ```
 
+See [coco_mini_s3_direct.py](./configs/coco_mini/coco_mini_s3_direct.py) for example config file. 
+
 [ClearML example task](https://app.community.clear.ml/projects/90233d6aa54844a3b1b66eea7d952b26/experiments/e548da1ac7234fc2ab61161a3569f65d/output/log)
 
 
