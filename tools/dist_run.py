@@ -218,7 +218,7 @@ def main(args=None):
     if not args.skip_s3:
         s3_handler = s3_download(args, environs=environs)
 
-    from torchrun import run
+    from utils.torchrun import run
 
     run(args)
 
