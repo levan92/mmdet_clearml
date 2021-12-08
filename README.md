@@ -40,14 +40,21 @@ python3 dist_run.py --nproc_per_node=$GPUS --master_port=$PORT \
 
 #### locally with ClearML logging and S3 direct reading of images
 
+Expects following environment variables to be set: 
+- AWS_ENDPOINT_URL
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- CERT_PATH (optional)
+- CERT_DL_URL (optional)
+
+See [coco_mini_s3_direct.py](./configs/coco_mini/coco_mini_s3_direct.py) for example config file. 
+
 ```bash
 # with the same env var exports
 python dist_run.py --nproc_per_node=$GPUS --master_port=$PORT \
     --clml-run-locally --clml-proj mmdet --clml-task-name coco_mini_train_s3_direct --download-models 'resnet50_msra-5891d200.pth' --s3-models-bucket mmdet-wts --s3-models-path '' --s3-direct-read --download-data coco_mini/train.json coco_mini/val.json --s3-data-bucket coco --s3-data-path '' \
     $(dirname "$0")/train.py ../configs/coco_mini/coco_mini_s3_direct.py --launcher pytorch --clearml ${@:3} 
 ```
-
-See [coco_mini_s3_direct.py](./configs/coco_mini/coco_mini_s3_direct.py) for example config file. 
 
 [ClearML example task](https://app.community.clear.ml/projects/90233d6aa54844a3b1b66eea7d952b26/experiments/e548da1ac7234fc2ab61161a3569f65d/output/log)
 
