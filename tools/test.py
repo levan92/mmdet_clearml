@@ -114,7 +114,7 @@ def main():
         or args.show_dir, \
         ('Please specify at least one operation (save/eval/format/show the '
          'results / save the results) with the argument "--out", "--eval"'
-         ', "--format-only", "--show" or "--show-dir"')
+         ', "--write-result", "--show" or "--show-dir"')
 
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
@@ -242,6 +242,23 @@ def main():
             metric_dict = dict(config=args.config, metric=metric)
             if args.work_dir is not None and rank == 0:
                 mmcv.dump(metric_dict, json_file)
+
+            if args.clearml and (not distributed or rank==0):
+                cl_task.upload_artifact(
+                    name="eval",
+                    artifact_object=metric,
+                )
+                cl_logger = cl_task.get_logger()
+                for key, value in metric.items():
+                    if '_copypaste' in key: 
+                        continue
+                    cl_logger.report_scalar(
+                        title="eval",
+                        series=key,
+                        value=value,
+                        iteration=0,
+                    )
+
 
 
 if __name__ == '__main__':
