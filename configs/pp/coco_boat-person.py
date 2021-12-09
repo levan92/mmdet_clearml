@@ -1,25 +1,7 @@
 _base_ = '../faster_rcnn/faster_rcnn_r50_caffe_fpn_mstrain_1x_coco.py'
 
-dataset_type = 'CocoDataset'
-data_root = 'datasets/coco2017/'
 classes = ('person', 'boat')
-data = dict(
-    train=dict(
-        ann_file=data_root + 'annotations/instances_train2017.json',
-        img_prefix=data_root + 'train2017/',
-        classes=classes,
-        ),
-    val=dict(
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
-        classes=classes,
-        ),
-    test=dict(
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
-        classes=classes,
-        ))
-        
+
 model = dict(
     roi_head=dict(bbox_head=dict(num_classes=len(classes))),
     init_cfg=dict(
@@ -28,7 +10,78 @@ model = dict(
     )
 )
 
+file_client_args = dict(backend='s3')
+train_pipeline = [
+    dict(
+        type='LoadImageFromFile',
+        file_client_args=file_client_args,
+        ),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        type='Resize',
+        img_scale=[(1333, 640), (1333, 672), (1333, 704), (1333, 736),
+                   (1333, 768), (1333, 800)],
+        multiscale_mode='value',
+        keep_ratio=True),
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(
+        type='Normalize',
+        mean=[103.53, 116.28, 123.675],
+        std=[1.0, 1.0, 1.0],
+        to_rgb=False),
+    dict(type='Pad', size_divisor=32),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+]
+test_pipeline = [
+    dict(
+        type='LoadImageFromFile',
+        file_client_args=file_client_args,
+        ),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[103.53, 116.28, 123.675],
+                std=[1.0, 1.0, 1.0],
+                to_rgb=False),
+            dict(type='Pad', size_divisor=32),
+            dict(type='DefaultFormatBundle'),
+            dict(type='Collect', keys=['img'])
+        ])
+]
 
+dataset_type = 'CocoDataset'
+s3_data_root = 's3://public-data/coco2017/'
+local_data_root = 'datasets/coco2017/'
+data = dict(
+    train=dict(
+        ann_file=local_data_root + 'annotations/instances_train2017.json',
+        img_prefix=s3_data_root + 'train2017/',
+        pipeline=train_pipeline,
+        classes=classes,
+        filter_empty_gt=False,
+        ),
+    val=dict(
+        ann_file=local_data_root + 'annotations/instances_val2017.json',
+        img_prefix=s3_data_root + 'val2017/',
+        pipeline=test_pipeline,
+        classes=classes,
+        samples_per_gpu=2,
+        ),
+    test=dict(
+        ann_file=local_data_root + 'annotations/instances_val2017.json',
+        img_prefix=s3_data_root + 'val2017/',
+        pipeline=test_pipeline,
+        classes=classes,
+        samples_per_gpu=2,
+        ))
+        
 evaluation = dict(interval=1, metric='bbox', save_best='bbox_mAP_50')
 runner = dict(_delete_=True, type='EpochBasedRunner', max_epochs=12)
 checkpoint_config = dict(_delete_=True)
