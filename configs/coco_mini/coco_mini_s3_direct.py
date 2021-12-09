@@ -33,7 +33,8 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(
-        type='LoadImageFromFile',         file_client_args=file_client_args,
+        type='LoadImageFromFile',
+        file_client_args=file_client_args,
         ),
     dict(
         type='MultiScaleFlipAug',
