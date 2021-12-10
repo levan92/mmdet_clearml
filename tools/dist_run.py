@@ -11,6 +11,13 @@ S3_ENVS = [
     "AWS_SECRET_ACCESS_KEY",
     "CERT_PATH",
     "CERT_DL_URL",
+    "CONFIG",
+    "TRAIN_FOLDERS",
+    "VAL_FOLDERS",
+    "TEST_FOLDERS",
+    "COCO_MODE"
+    "FIND_UNUSED_PARAMETERS",
+    "TORCH_DISTRIBUTED_DEBUG"
 ]
 
 
@@ -73,7 +80,7 @@ def add_clearml_args(parser):
         "--docker-img",
         help="Base docker image to pull",
     )
-    clearml_parser.add_argument("--queue", default="1gpu", help="ClearML Queue")
+    clearml_parser.add_argument("--queue", default="queue-1xV100-16ram", help="ClearML Queue")
 
 
 def add_s3_args(parser):
@@ -238,12 +245,12 @@ def main(args=None):
             data_root = cfg.data_root
 
             train_folders = [os.path.join(data_root, item)
-                             for item in os.environ.get('train_folders').split(',')]
+                             for item in os.environ.get('TRAIN_FOLDERS').split(',')]
             val_folders = [os.path.join(data_root, item)
-                           for item in os.environ.get('val_folders').split(',')]
+                           for item in os.environ.get('VAL_FOLDERS').split(',')]
             test_folders = [os.path.join(data_root, item)
-                            for item in os.environ.get('test_folders').split(',')]
-            coco_mode = int(os.environ.get('coco_mode', 1))
+                            for item in os.environ.get('TEST_FOLDERS').split(',')]
+            coco_mode = int(os.environ.get('COCO_MODE', 1))
             if coco_mode == 2:
                 classes = os.environ.get('split_keys').split(',')
                 split_classes_dict = {class_name: os.environ.get(class_name, class_name).split(',')
@@ -253,7 +260,7 @@ def main(args=None):
                              split_classes_dict=split_classes_dict)
             else:
                 merge_videos(train_folders=train_folders, val_folders=val_folders,
-                             test_folders=test_folders, class_names=class_names)
+                             test_folders=test_folders, class_names=class_names, coco_mode=coco_mode)
 
     from utils.torchrun import run
 
