@@ -23,6 +23,7 @@ class CocoDatasetImba(CocoDataset):
     """
     CocoDatset with Imbalanced Evaluation
     """
+
     def evaluate_imba(
         self,
         result_files,
@@ -36,7 +37,7 @@ class CocoDatasetImba(CocoDataset):
         """Evaluation in COCO protocol.
 
         Note: Copied from mmdet.datasets.coco.evaluate, changes being:
-        1) input argument is path to result jsons instead of mmdet output (to account for diff images) 
+        1) input argument is path to result jsons instead of mmdet output (to account for diff images)
         2) removing images in prediction that don't belong to this coco dataset. See lines before `cocoGt.loadRes` around line 122
         3) No more support for 'proposal_fast'
 
@@ -87,12 +88,12 @@ class CocoDatasetImba(CocoDataset):
                 msg = "\n" + msg
             print_log(msg, logger=logger)
 
-            iou_type = 'bbox' if metric == 'proposal' else metric
+            iou_type = "bbox" if metric == "proposal" else metric
             if metric not in result_files:
-                raise KeyError(f'{metric} is not in results')
+                raise KeyError(f"{metric} is not in results")
             try:
                 predictions = mmcv.load(result_files[metric])
-                if iou_type == 'segm':
+                if iou_type == "segm":
                     # Refer to https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/coco.py#L331  # noqa
                     # When evaluating mask AP, if the results contain bbox,
                     # cocoapi will use the box area instead of the mask area
@@ -100,13 +101,14 @@ class CocoDatasetImba(CocoDataset):
                     # is not affected, this leads to different
                     # small/medium/large mask AP results.
                     for x in predictions:
-                        x.pop('bbox')
-                    warnings.simplefilter('once')
+                        x.pop("bbox")
+                    warnings.simplefilter("once")
                     warnings.warn(
                         'The key "bbox" is deleted for more accurate mask AP '
-                        'of small/medium/large instances since v2.12.0. This '
-                        'does not change the overall mAP calculation.',
-                        UserWarning)
+                        "of small/medium/large instances since v2.12.0. This "
+                        "does not change the overall mAP calculation.",
+                        UserWarning,
+                    )
                 predictions = [
                     instance
                     for instance in predictions.copy()
@@ -115,9 +117,10 @@ class CocoDatasetImba(CocoDataset):
                 cocoDt = cocoGt.loadRes(predictions)
             except IndexError:
                 print_log(
-                    'The testing results of the whole dataset is empty.',
+                    "The testing results of the whole dataset is empty.",
                     logger=logger,
-                    level=logging.ERROR)
+                    level=logging.ERROR,
+                )
                 break
 
             cocoEval = COCOeval(cocoGt, cocoDt, iou_type)
