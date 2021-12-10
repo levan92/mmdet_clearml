@@ -45,7 +45,7 @@ def parse_dota_poly(filename):
         [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
     """
     objects = []
-    f = []
+    f = open(filename, 'r')
 
     while True:
         line = f.readline()
