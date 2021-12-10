@@ -17,6 +17,8 @@ from mmdet.apis import multi_gpu_test, single_gpu_test
 from mmdet.datasets import build_dataloader, build_dataset, replace_ImageToTensor
 from mmdet.models import build_detector
 
+import mmcv_custom.fileio.file_client
+import mmdet_custom.datasets.coco
 
 def parse_args():
     parser = argparse.ArgumentParser(description="MMDet test (and eval) a model")
@@ -278,8 +280,6 @@ def main():
                     )
 
             if args.sub_eval:
-                import mmdet_custom.datasets.coco
-
                 # Subset evaluation
                 jsons = []
                 val_str = "val"

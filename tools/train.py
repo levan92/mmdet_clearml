@@ -23,6 +23,7 @@ from mmdet.models import build_detector
 from mmdet.utils import collect_env, get_root_logger
 
 import mmcv_custom.fileio.file_client
+import mmdet_custom.datasets.coco
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
