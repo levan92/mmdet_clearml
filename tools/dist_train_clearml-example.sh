@@ -34,5 +34,5 @@ export CERT_PATH=
 ######## clearml + data s3 direct ########
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python dist_run.py --nproc_per_node=$GPUS --master_port=$PORT \
-    --clml-run-locally --clml-proj mmdet --clml-task-name coco_mini_train_s3_direct --download-models 'resnet50_msra-5891d200.pth' --s3-models-bucket mmdet-wts --s3-models-path '' --s3-direct-read --download-data coco_mini/train.json coco_mini/val.json --s3-data-bucket coco --s3-data-path '' \
+    --clml-run-locally --clml-proj mmdet --clml-task-name coco_mini_train_s3_direct --clml-task-type training --download-models 'resnet50_msra-5891d200.pth' --s3-models-bucket mmdet-wts --s3-models-path '' --s3-direct-read --download-data coco_mini/train.json coco_mini/val.json --s3-data-bucket coco --s3-data-path '' \
     $(dirname "$0")/train.py $CONFIG --launcher pytorch --clearml ${@:3} 
