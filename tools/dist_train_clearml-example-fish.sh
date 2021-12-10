@@ -36,7 +36,7 @@ export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 export CERT_PATH=
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
-python dist_train_clearml.py --nproc_per_node=$GPUS --master_port=$PORT \
+python dist_run.py --nproc_per_node=$GPUS --master_port=$PORT \
     --clml-run-locally --clml-proj mmdet --clml-task-name example-task --docker-img 'mmdet:latest' \
     --download-models 'yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth' \
     --s3-models-bucket mmdet-test --merge-videos --download-data collated.tar.gz --s3-data-bucket mmdet-test  --s3-data-path batches \

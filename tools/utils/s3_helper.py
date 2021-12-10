@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tarfile
 import zipfile
+from warnings import warn
 
 import boto3
 from botocore.client import Config
@@ -126,6 +127,8 @@ class S3_handler:
                     unzip=unzip,
                 )
                 local_dled_dirs.append(local_folder_path)
+        else:
+            warn('No dirs downloading')
         return local_dled_dirs
 
     def ul_dir(self, local_dir, s3_bucket, s3_parent_path, s3_dir_name):
