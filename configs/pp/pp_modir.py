@@ -61,6 +61,8 @@ s3_data_root = 's3://pixelplus-s3/data/ObjectDetection/pp_modir/'
 local_data_root = 'datasets/pp_modir/'
 
 data = dict(
+    samples_per_gpu=8, 
+    workers_per_gpu=8,
     train=dict(
         ann_file=local_data_root + 'train.json',
         img_prefix=s3_data_root + 'images/',
@@ -72,14 +74,14 @@ data = dict(
         img_prefix=s3_data_root + 'images/',
         pipeline=test_pipeline,
         classes=classes,
-        samples_per_gpu=2,
+        samples_per_gpu=4,
         ),
     test=dict(
         ann_file=local_data_root + 'val.json',
         img_prefix=s3_data_root + 'images/',
         pipeline=test_pipeline,
         classes=classes,
-        samples_per_gpu=2,
+        samples_per_gpu=4,
         ))
 
 evaluation = dict(interval=1, metric='bbox', save_best='bbox_mAP_50')
