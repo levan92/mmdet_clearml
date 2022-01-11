@@ -3,7 +3,7 @@ model = dict(
     roi_head=dict(bbox_head=dict(num_classes=3)),
     init_cfg=dict(
         type='Pretrained',
-        checkpoint='weights/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth'
+        checkpoint='weights/faster_rcnn_r50_fpn_1x_coco-person-bicycle-car_20201216_173117-6eda6d92.pth'
     )
 )
 
@@ -47,7 +47,7 @@ test_pipeline = [
                 std=[1.0, 1.0, 1.0],
                 to_rgb=False),
             dict(type='Pad', size_divisor=32),
-            dict(type='ImageToTensor', keys=['img']),
+            dict(type='DefaultFormatBundle'),
             dict(type='Collect', keys=['img'])
         ])
 ]
@@ -57,6 +57,7 @@ s3_data_root = 's3://coco/coco_mini/'
 local_data_root = 'datasets/coco_mini/'
 classes = ('person', 'bicycle', 'car')
 data = dict(
+    workers_per_gpu=4,
     train=dict(
         ann_file= local_data_root + 'train.json',
         img_prefix=s3_data_root + 'images/',

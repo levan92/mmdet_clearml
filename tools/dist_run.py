@@ -11,6 +11,13 @@ S3_ENVS = [
     "AWS_SECRET_ACCESS_KEY",
     "CERT_PATH",
     "CERT_DL_URL",
+    "CONFIG",
+    "TRAIN_FOLDERS",
+    "VAL_FOLDERS",
+    "TEST_FOLDERS",
+    "COCO_MODE"
+    "FIND_UNUSED_PARAMETERS",
+    "TORCH_DISTRIBUTED_DEBUG"
 ]
 
 
@@ -73,7 +80,7 @@ def add_clearml_args(parser):
         "--docker-img",
         help="Base docker image to pull",
     )
-    clearml_parser.add_argument("--queue", default="1gpu", help="ClearML Queue")
+    clearml_parser.add_argument("--queue", default="queue-1xV100-16ram", help="ClearML Queue")
 
 
 def add_s3_args(parser):
@@ -98,9 +105,12 @@ def add_s3_args(parser):
     s3_parser.add_argument("--s3-data-path", help="S3 Data Path", default='')
     parser.add_argument(
         "--s3-direct-read",
-        help="direct reading of images from S3 bucket without initial bulk download.",
+        help="Only download first level files from given directory for direct reading of images from S3 bucket without initial bulk download.",
         action="store_true",
     )
+    s3_parser.add_argument('--merge-videos',
+                        help='merge videos into trg, val & test',
+                        action='store_true', default=False)
 
     ## Explicit Upload (not ClearML Auto-magic upload)
     s3_parser.add_argument(
@@ -174,6 +184,7 @@ def s3_download(
 
     if args.download_data:
         if args.s3_direct_read:
+            print('Only downloading jsons')
             local_data_dirs = s3_handler.dl_files(
                 args.download_data,
                 args.s3_data_bucket,
@@ -181,7 +192,16 @@ def s3_download(
                 local_data_dir,
                 unzip=True,
             )
+        elif args.merge_videos:
+            s3_handler.dl_files(
+                args.download_data,
+                args.s3_data_bucket,
+                args.s3_data_path,
+                local_data_dir,
+                unzip=True,
+            )
         else:
+            print('Downloading entire dataset')
             local_data_dirs = s3_handler.dl_dirs(
                 args.download_data,
                 args.s3_data_bucket,
@@ -217,8 +237,32 @@ def main(args=None):
     cl_task = init_clearml(args, environs=environs)
     if not args.skip_s3:
         s3_handler = s3_download(args, environs=environs)
+        if args.merge_videos:
+            from utils.merge_videos import merge_videos
+            import mmcv
+            cfg = mmcv.Config.fromfile(os.environ.get('CONFIG'))
+            class_names = cfg.classes
+            data_root = cfg.data_root
 
-    from torchrun import run
+            train_folders = [os.path.join(data_root, item)
+                             for item in os.environ.get('TRAIN_FOLDERS').split(',')]
+            val_folders = [os.path.join(data_root, item)
+                           for item in os.environ.get('VAL_FOLDERS').split(',')]
+            test_folders = [os.path.join(data_root, item)
+                            for item in os.environ.get('TEST_FOLDERS').split(',')]
+            coco_mode = int(os.environ.get('COCO_MODE', 1))
+            if coco_mode == 2:
+                classes = os.environ.get('split_keys').split(',')
+                split_classes_dict = {class_name: os.environ.get(class_name, class_name).split(',')
+                                      for class_name in classes}
+                merge_videos(train_folders=train_folders, val_folders=val_folders,
+                             test_folders=test_folders, class_names=class_names,
+                             split_classes_dict=split_classes_dict)
+            else:
+                merge_videos(train_folders=train_folders, val_folders=val_folders,
+                             test_folders=test_folders, class_names=class_names, coco_mode=coco_mode)
+
+    from utils.torchrun import run
 
     run(args)
 
