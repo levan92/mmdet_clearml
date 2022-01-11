@@ -28,7 +28,7 @@ data = dict(
         classes=classes,
         ))
 
-evaluation = dict(interval=1, metric='bbox', save_best='bbox_mAP_50')
+evaluation = dict(interval=1, metric='bbox', iou_thrs=[0.3], save_best='bbox_mAP_50')
 runner = dict(_delete_=True, type='EpochBasedRunner', max_epochs=24)
 checkpoint_config = dict(_delete_=True)
 work_dir = './work_dirs/output'
