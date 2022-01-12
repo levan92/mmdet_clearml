@@ -13,6 +13,7 @@ dataset_type = 'CocoDataset'
 data_root = 'datasets/'
 data = dict(
     train=dict(
+        type='ClassBalancedDataset',
         ann_file=data_root + 'train/train.json',
         img_prefix=data_root + 'train/images/',
         classes=classes,

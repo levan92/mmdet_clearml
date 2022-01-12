@@ -16,6 +16,7 @@ data_root = 'datasets/'
 data = dict(
     train=dict(
         dataset=dict(
+            type='ClassBalancedDataset',
             ann_file=data_root + 'train/train.json',
             img_prefix=data_root + 'train/images/',
             classes=classes,

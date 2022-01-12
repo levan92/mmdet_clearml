@@ -4,6 +4,16 @@ CONFIG=$1
 GPUS=1
 PORT=${PORT:-29500}
 
+# for FISH: Merging videos in DOTA format
+export train_folders=collated
+export val_folders=collated
+export test_folders=collated
+
+## coco_mode=0 for normal trg, 1 for vehicle training, 2 for split_classes_dict
+export coco_mode=1
+## coco_mode=2, map small-vehicle and large-vehicle into vehicle class
+# export split_keys=vehicle,helicopter,plane
+# export vehicle=small-vehicle,large-vehicle
 
 ######## local ########
 # PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
@@ -21,8 +31,10 @@ PORT=${PORT:-29500}
 
 ######## clearml + s3 bulk dl ########
 export AWS_ENDPOINT_URL=https://play.min.io
-export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+export AWS_ACCESS_KEY_ID=Q3AM3UQ867SPQQA43P2F
+export AWS_SECRET_ACCESS_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
+#export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+#export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 export CERT_PATH=
 
 # PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \

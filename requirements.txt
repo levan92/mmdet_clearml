@@ -1,2 +1,4 @@
 clearml
 boto3
+Shapely
+wget
