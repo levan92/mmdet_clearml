@@ -16,7 +16,6 @@ data_root = 'datasets/'
 data = dict(
     train=dict(
         dataset=dict(
-            type='ClassBalancedDataset',
             ann_file=data_root + 'train/train.json',
             img_prefix=data_root + 'train/images/',
             classes=classes,
@@ -32,7 +31,7 @@ data = dict(
         classes=classes,
         ))
 
-evaluation = dict(interval=1, metric='bbox', iou_thrs=[0.3], save_best='bbox_mAP_50')
+evaluation = dict(interval=1, metric='bbox', iou_thrs=[0.3], save_best='bbox_mAP')
 runner = dict(_delete_=True, type='EpochBasedRunner', max_epochs=24)
 checkpoint_config = dict(_delete_=True)
 work_dir = './work_dirs/output'
