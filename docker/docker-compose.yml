@@ -1,0 +1,60 @@
+# docker-compose -f docker-compose.yml up
+version: '3.2'
+services:
+  inference_backend:
+    image: fish_inference
+    tty: true
+    ipc: host
+    command: python3 /media/data/mmdet_clearml/tools/video_demo.py /media/data/downloads/video.mp4 --out /media/data/downloads/test_video.mp4 --classification
+    environment:
+      - DISPLAY=unix$DISPLAY
+    ports:
+      - "554:554"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - $HOME/.Xauthority:/root/.Xauthority:rw
+      - /media/data/downloads:/media/data/downloads
+      - /media/data/mmdet_clearml/tools/torchserver_img.py:/media/data/mmdet_clearml/tools/torchserver_img.py
+      - /media/data/mmdet_clearml/tools/video_demo.py:/media/data/mmdet_clearml/tools/video_demo.py
+    networks:
+      - fish_network
+    depends_on:
+      - detection_backend
+      - classification_backend
+  detection_backend:
+    image: mmdet-serve
+    tty: true
+    ipc: host
+    command: torchserve --start --model-store /home/model-server/model-store --models detection=yolox-oneclass-0.5.mar
+    environment:
+      - DISPLAY=unix$DISPLAY
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - type: bind
+        source: /media/data/downloads/yolox
+        target: /home/model-server/model-store
+    networks:
+      - fish_network
+  classification_backend:
+    image: pytorch/torchserve:dev-gpu
+    tty: true
+    ipc: host
+    command: torchserve --start --model-store /home/model-server/model-store --models classification=classification_resnet18.mar
+    environment:
+      - DISPLAY=unix$DISPLAY
+    ports:
+      - "8083:8083"
+      - "8084:8084"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - type: bind
+        source: /media/data/downloads/resnet18
+        target: /home/model-server/model-store
+    networks:
+      - fish_network
+networks:
+  fish_network:
+    external: true
