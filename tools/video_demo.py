@@ -40,12 +40,19 @@ def main():
 
     det_url = 'http://' + args.inference_addr_det + '/predictions/detection'
 
+    test_img = np.zeros((10,10,3))
+    _ , encoded_test_image = cv2.imencode('.jpg', test_img)
+    test_img_bytes = encoded_test_image.tobytes()
     # make sure detection torchserve container has started
     connection_succeed = False
     while not connection_succeed:
         try:
-            requests.get(det_url)
-            connection_succeed = True
+            # if successful, response should be empty list
+            response = requests.post(det_url, test_img_bytes).json()
+            if not response:
+                connection_succeed = True
+            else:
+                time.sleep(2)
         except requests.exceptions.ConnectionError:
             time.sleep(2)
     print('DETECTION BACKEND STARTED')
@@ -57,8 +64,12 @@ def main():
         connection_succeed = False
         while not connection_succeed:
             try:
-                requests.get(clas_url)
-                connection_succeed = True
+                # if successful, response should be dict of results
+                response = requests.post(clas_url, test_img_bytes).json()
+                if response.get('code', None) != 404:
+                    connection_succeed = True
+                else:
+                    time.sleep(2)
             except requests.exceptions.ConnectionError:
                 time.sleep(2)
         print('CLASSIFICATION BACKEND STARTED')
@@ -77,7 +88,7 @@ def main():
         _ , encoded_image = cv2.imencode('.jpg', frame)
         det_response = requests.post(det_url, encoded_image.tobytes())
         det_results = det_response.json()
-        print(det_results)
+        # print(det_results)
 
         drawn_image = frame.copy()
         for det_res in det_results:
