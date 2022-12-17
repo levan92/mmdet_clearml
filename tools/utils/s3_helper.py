@@ -16,7 +16,26 @@ def master_unzip(local_fp):
     if local_fp.suffix in [".tar", ".gz", ".tgz"]:
         print("Untarring..")
         with tarfile.open(local_fp) as tar:
-            tar.extractall(local_fp.parent)
+            def is_within_directory(directory, target):
+                
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+            
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+                
+                return prefix == abs_directory
+            
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+            
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise Exception("Attempted Path Traversal in Tar File")
+            
+                tar.extractall(path, members, numeric_owner=numeric_owner) 
+                
+            
+            safe_extract(tar, local_fp.parent)
     elif local_fp.suffix in [".zip"]:
         print("Unzipping..")
         with zipfile.ZipFile(local_fp, "r") as zip_ref:
